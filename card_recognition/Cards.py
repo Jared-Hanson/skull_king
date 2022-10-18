@@ -278,7 +278,7 @@ def preprocess_card(contour, image):
     warp = flattener(image, pts, w, h)
     qCard.warp = warp
 
-    return warp
+    return qCard
 
 def match_card(qCard, train_ranks, train_suits):
     """Finds best rank and suit matches for the query card. Differences
