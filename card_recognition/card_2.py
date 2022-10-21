@@ -6,11 +6,8 @@ import cv2
 import numpy as np
 import Cards
 
-import tensorflow as tf
 
-from tensorflow import keras
-from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
+from tflite_runtime.interpreter import Interpreter
 
 import PIL
 
@@ -23,15 +20,19 @@ cur_int = 0
 # Grab frame from video stream
 
 image = cv2.imread("images_of_cards/IMG_6486.jpg")
-
 # Pre-process camera image (gray, blur, and threshold it)
 image_copy = image.copy()
-
 # Grayscale
 thresh = Cards.preprocess_image(image)
 #cnts_sort, cnt_is_card = Cards.find_cards_debug(thresh, image_copy)
 cnts_sort, cnt_is_card = Cards.find_cards(thresh)
 
+
+TF_MODEL_FILE_PATH = 'model.tflite'
+# Allocate tensors
+interpreter = Interpreter(model_path=TF_MODEL_FILE_PATH)
+interpreter.allocate_tensors()  # Needed before execution!
+print(interpreter.get_input_details())
 
 if len(cnts_sort) != 0:
 
@@ -51,34 +52,24 @@ if len(cnts_sort) != 0:
             cards.append(Cards.preprocess_card(cnts_sort[i],image))
     
     for card in cards:
-        print(card.warp.shape)
-        class_names = ['black', 'boat', 'green', 'mermade', 'pirate', 'purple', 'skull_king', 'yellow']
-        #Convert the captured frame into RGB
-        #Format for the Mul:0 Tensor
-        image_file = "a.jpg"
-        cv2.imwrite(image_file, card.warp)
-        img = tf.keras.utils.load_img(
-            image_file, target_size=(300, 200)
-        )
-        img_array = tf.keras.utils.img_to_array(img)
-        img_array = tf.expand_dims(img_array, 0) # Create a batch
-        #Expand dimensions to match the 4D Tensor shape.
-        TF_MODEL_FILE_PATH = 'model.tflite' # The default path to the saved TensorFlow Lite model
+        print(card.warp[150][100])
 
-        interpreter = tf.lite.Interpreter(model_path=TF_MODEL_FILE_PATH)
-        print(interpreter.get_signature_list())
+        gray = cv2.cvtColor(card.warp,cv2.COLOR_GRAY2BGR)
+        x = np.asarray(gray, dtype='float32')
+        image_data = np.expand_dims(x, 0)
+        class_names = ['black', 'boat', 'green', 'mermade', 'pirate', 'purple', 'skull_king', 'yellow']
+
+
         classify_lite = interpreter.get_signature_runner('serving_default')
 
-        predictions_lite = classify_lite(sequential_input=img_array)['outputs']
-        score_lite = tf.nn.softmax(predictions_lite)
-
-
-        print(
-            "This image most likely belongs to {} with a {:.2f} percent confidence."
-            .format(class_names[np.argmax(score_lite)], 100 * np.max(score_lite))
-        )
+        predictions_lite = classify_lite(sequential_input=image_data)['outputs']
+        print(predictions_lite)
+        
+        
+        
         card.best_rank_match = "none rn"
-        card.best_suit_match = class_names[np.argmax(score_lite)]
+        card.best_suit_match = class_names[np.argmax(predictions_lite)]
+        print(class_names[np.argmax(predictions_lite)])
         image = Cards.draw_results(image, card)
     
     cv2.imshow("final", image)
