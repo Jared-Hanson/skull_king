@@ -9,6 +9,9 @@ import Cards
 
 from tflite_runtime.interpreter import Interpreter
 
+import keras_ocr
+
+
 import PIL
 
 
@@ -29,11 +32,13 @@ cnts_sort, cnt_is_card = Cards.find_cards(thresh)
 
 
 TF_MODEL_FILE_PATH = 'model.tflite'
+TF_NUM_MODEL_FILE_PATH = 'lite-model_keras-ocr_float16_2.tflite'
 # Allocate tensors
 interpreter = Interpreter(model_path=TF_MODEL_FILE_PATH)
 interpreter.allocate_tensors()  # Needed before execution!
-print(interpreter.get_input_details())
 
+interpreter_num = Interpreter(model_path=TF_NUM_MODEL_FILE_PATH)
+interpreter_num.allocate_tensors()  # Needed before execution!
 if len(cnts_sort) != 0:
 
     # Initialize a new "cards" list to assign the card objects.
@@ -52,24 +57,31 @@ if len(cnts_sort) != 0:
             cards.append(Cards.preprocess_card(cnts_sort[i],image))
     
     for card in cards:
-        print(card.warp[150][100])
 
         gray = cv2.cvtColor(card.warp,cv2.COLOR_GRAY2BGR)
         x = np.asarray(gray, dtype='float32')
         image_data = np.expand_dims(x, 0)
         class_names = ['black', 'boat', 'green', 'mermade', 'pirate', 'purple', 'skull_king', 'yellow']
-
-
+        print(interpreter.get_signature_list())
         classify_lite = interpreter.get_signature_runner('serving_default')
+        predictions_lite_suit = classify_lite(sequential_input=image_data)['outputs']
 
-        predictions_lite = classify_lite(sequential_input=image_data)['outputs']
-        print(predictions_lite)
+        c = card.warp[0:70, 0:70]
+        retval, c = cv2.threshold(c,210,255,cv2.THRESH_BINARY)
+        if np.average(c[20:50, 20:50]) > 70:
+            c = ~c
+        gray = cv2.cvtColor(c[20:50, 20:50],cv2.COLOR_GRAY2BGR)
+        x = np.asarray(gray, dtype='float32')
+        image_data = np.expand_dims(x, 0)
+        num_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+        print(interpreter_num.get_signature_list())
+        classify_lite = interpreter_num.get_signature_runner('serving_default')
+        predictions_lite_num = classify_lite(sequential_input=image_data)['outputs']
         
         
         
-        card.best_rank_match = "none rn"
-        card.best_suit_match = class_names[np.argmax(predictions_lite)]
-        print(class_names[np.argmax(predictions_lite)])
+        card.best_rank_match = num_names[np.argmax(predictions_lite_num)]
+        card.best_suit_match = class_names[np.argmax(predictions_lite_suit)]
         image = Cards.draw_results(image, card)
     
     cv2.imshow("final", image)

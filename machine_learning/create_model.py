@@ -8,13 +8,13 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
 import pathlib
-data_dir = pathlib.Path("dataset")
+data_dir = pathlib.Path("num_dataset")
 
 
 
 batch_size = 32
-img_height = 300
-img_width = 200
+img_height = 30
+img_width = 30
 
 train_ds = tf.keras.utils.image_dataset_from_directory(
   data_dir,
@@ -74,7 +74,7 @@ model.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
-epochs=10
+epochs=50
 history = model.fit(
   train_ds,
   validation_data=val_ds,
@@ -93,5 +93,5 @@ converter = tf.lite.TFLiteConverter.from_keras_model(model)
 tflite_model = converter.convert()
 
 # Save the model.
-with open('model.tflite', 'wb') as f:
+with open('num_model.tflite', 'wb') as f:
   f.write(tflite_model)
