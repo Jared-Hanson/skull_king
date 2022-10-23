@@ -7,36 +7,74 @@ import pytesseract
 
 
 
+folders = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
+for folder in folders:
+    count = 0
+    if not os.path.isdir(f"num_dataset/{folder}"):
+        os.mkdir(f"num_dataset/{folder}")
+    for im in os.scandir(f"num_cards/{folder}"):
+        if ".DS_Store" not in im.path:
+            img = cv2.imread(im.path)
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[1:61, 0:60])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[2:62, 0:60])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[3:63, 0:60])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[4:64, 0:60])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[5:65, 0:60])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[6:66, 0:60])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[7:67, 0:60])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[8:68, 0:60])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[9:69, 0:60])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[10:70, 0:60])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[1:61, 1:61])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[2:62, 2:62])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[3:63, 3:63])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[4:64, 4:64])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[5:65, 5:65])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[6:66, 6:66])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[7:67, 7:67])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[8:68, 8:68])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[9:69, 9:69])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[10:70, 10:70])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 1:61])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 2:62])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 3:63])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 4:64])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 5:65])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 6:66])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 7:67])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 8:68])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 9:69])
+            count += 1
+            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 10:70])
 
-for im in os.scandir(f"number_model"):
-    if ".DS_Store" not in im.path:
-        print(im.path)
-        img = cv2.imread(im.path)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
- 
-        # Performing OTSU threshold
-        ret, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
-        
-        # Specify structure shape and kernel size.
-        # Kernel size increases or decreases the area
-        # of the rectangle to be detected.
-        # A smaller value like (10, 10) will detect
-        # each word instead of a sentence.
-        rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 18))
-        
-        # Applying dilation on the threshold image
-        dilation = cv2.dilate(thresh1, rect_kernel, iterations = 1)
-        
-        # Finding contours
-        contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL,
-                                                        cv2.CHAIN_APPROX_NONE)
-                                        
-        im2 = img.copy()
-            
-        # Open the file in append mode
-        file = open("recognized.txt", "a")
-        
-        # Apply OCR on the cropped image
-        text = pytesseract.image_to_string(im2[15:55, 15:55])
-        print(text)
 
+
+        
