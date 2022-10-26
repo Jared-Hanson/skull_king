@@ -1,80 +1,35 @@
 
-import json
-import os
-import cv2
+from os import scandir
+import cv2 as cv
 import numpy as np
-import pytesseract
+from matplotlib import pyplot as plt
+img = cv.imread('8_.jpg', 0)
+img2 = img.copy()
 
-
-
-folders = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
-for folder in folders:
-    count = 0
-    if not os.path.isdir(f"num_dataset/{folder}"):
-        os.mkdir(f"num_dataset/{folder}")
-    for im in os.scandir(f"num_cards/{folder}"):
-        if ".DS_Store" not in im.path:
-            img = cv2.imread(im.path)
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[1:61, 0:60])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[2:62, 0:60])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[3:63, 0:60])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[4:64, 0:60])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[5:65, 0:60])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[6:66, 0:60])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[7:67, 0:60])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[8:68, 0:60])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[9:69, 0:60])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[10:70, 0:60])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[1:61, 1:61])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[2:62, 2:62])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[3:63, 3:63])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[4:64, 4:64])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[5:65, 5:65])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[6:66, 6:66])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[7:67, 7:67])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[8:68, 8:68])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[9:69, 9:69])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[10:70, 10:70])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 1:61])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 2:62])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 3:63])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 4:64])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 5:65])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 6:66])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 7:67])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 8:68])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 9:69])
-            count += 1
-            cv2.imwrite(f"num_dataset/{folder}/{count}.jpg", img[0:60, 10:70])
-
-
+# All the 6 methods for comparison in a list 
+method = cv.TM_CCOEFF_NORMED
+others = ['cv.TM_SQDIFF', 'cv.TM_SQDIFF_NORMED']
+for file in scandir("templates"):
+    template = cv.imread(file.path, 0)
+    w, h = template.shape[::-1]
+    
+    img = img2.copy()
+    # Apply template Matching
+    res = cv.matchTemplate(img,template,method)
+    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+    # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+    if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
+        top_left = min_loc
+    else:
+        top_left = max_loc
+    print(f"{file.path}: {max_val}")
+    bottom_right = (top_left[0] + w, top_left[1] + h)
+    cv.rectangle(img,top_left, bottom_right, 255, 2)
+    plt.subplot(121),plt.imshow(res,cmap = 'gray')
+    plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122),plt.imshow(img,cmap = 'gray')
+    plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
+    plt.suptitle(method)
+    plt.show()
 
         

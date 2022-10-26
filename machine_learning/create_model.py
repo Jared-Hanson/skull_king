@@ -13,8 +13,8 @@ data_dir = pathlib.Path("num_dataset")
 
 
 batch_size = 32
-img_height = 30
-img_width = 30
+img_height = 60
+img_width = 60
 
 train_ds = tf.keras.utils.image_dataset_from_directory(
   data_dir,
@@ -58,15 +58,17 @@ num_classes = len(class_names)
 model = Sequential([
   data_augmentation,
   layers.Rescaling(1./255),
-  layers.Conv2D(16, 3, padding='same', activation='relu'),
-  layers.MaxPooling2D(),
-  layers.Conv2D(32, 3, padding='same', activation='relu'),
-  layers.MaxPooling2D(),
-  layers.Conv2D(64, 3, padding='same', activation='relu'),
-  layers.MaxPooling2D(),
-  layers.Dropout(0.2),
+  layers.Conv2D(32,kernel_size=3,activation='relu'),
+  layers.BatchNormalization(),
+  layers.Conv2D(32,kernel_size=3,activation='relu'),
+  layers.BatchNormalization(),
+  layers.Conv2D(32,kernel_size=5,strides=2,padding='same',activation='relu'),
+  layers.BatchNormalization(),
+  layers.Dropout(0.4),
   layers.Flatten(),
   layers.Dense(128, activation='relu'),
+  layers.BatchNormalization(),
+  layers.Dropout(0.4),
   layers.Dense(num_classes, name="outputs")
 ])
 
@@ -74,7 +76,7 @@ model.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
-epochs=50
+epochs=15
 history = model.fit(
   train_ds,
   validation_data=val_ds,

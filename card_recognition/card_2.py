@@ -9,8 +9,6 @@ import Cards
 
 from tflite_runtime.interpreter import Interpreter
 
-import keras_ocr
-
 
 import PIL
 
@@ -32,13 +30,10 @@ cnts_sort, cnt_is_card = Cards.find_cards(thresh)
 
 
 TF_MODEL_FILE_PATH = 'model.tflite'
-TF_NUM_MODEL_FILE_PATH = 'lite-model_keras-ocr_float16_2.tflite'
 # Allocate tensors
 interpreter = Interpreter(model_path=TF_MODEL_FILE_PATH)
 interpreter.allocate_tensors()  # Needed before execution!
 
-interpreter_num = Interpreter(model_path=TF_NUM_MODEL_FILE_PATH)
-interpreter_num.allocate_tensors()  # Needed before execution!
 if len(cnts_sort) != 0:
 
     # Initialize a new "cards" list to assign the card objects.
@@ -65,23 +60,31 @@ if len(cnts_sort) != 0:
         print(interpreter.get_signature_list())
         classify_lite = interpreter.get_signature_runner('serving_default')
         predictions_lite_suit = classify_lite(sequential_input=image_data)['outputs']
+        _class = class_names[np.argmax(predictions_lite_suit)]
+        card.best_suit_match = _class
 
-        c = card.warp[0:70, 0:70]
-        retval, c = cv2.threshold(c,210,255,cv2.THRESH_BINARY)
-        if np.average(c[20:50, 20:50]) > 70:
-            c = ~c
-        gray = cv2.cvtColor(c[20:50, 20:50],cv2.COLOR_GRAY2BGR)
-        x = np.asarray(gray, dtype='float32')
-        image_data = np.expand_dims(x, 0)
-        num_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"]
-        print(interpreter_num.get_signature_list())
-        classify_lite = interpreter_num.get_signature_runner('serving_default')
-        predictions_lite_num = classify_lite(sequential_input=image_data)['outputs']
-        
-        
-        
-        card.best_rank_match = num_names[np.argmax(predictions_lite_num)]
-        card.best_suit_match = class_names[np.argmax(predictions_lite_suit)]
+        if _class in ['boat', 'mermade', 'pirate', 'skull_king']:
+            card.best_rank_match = _class
+        else:
+            print(_class)
+            method = cv2.TM_CCOEFF_NORMED
+            others = ['cv.TM_SQDIFF', 'cv.TM_SQDIFF_NORMED']
+            max = 0
+            max_suit = None
+            for file in os.scandir(f"templates/{_class}"):
+                if ".DS_Store" not in file.path:
+                    template = cv2.imread(file.path, 0)
+                    w, h = template.shape[::-1]
+                    
+                    # Apply template Matching
+                    res = cv2.matchTemplate(card.warp,template,method)
+                    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+                    if max_val > max:
+                        max = max_val
+                        max_suit = file.path
+            
+            card.best_rank_match = max_suit
+
         image = Cards.draw_results(image, card)
     
     cv2.imshow("final", image)
