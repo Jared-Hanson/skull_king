@@ -57,7 +57,8 @@ while cam_quit == 0:
     frame_rate_calc = 1/time1
     
     # Poll the keyboard. If 'q' is pressed, exit the main loop.
-    key = cv2.waitKey(1) & 0xFF
+    key = cv2.waitKey(5000) & 0xFF
+    cv2.imwrite("1.jpg")
     if key == ord("q"):
         cam_quit = 1
         
