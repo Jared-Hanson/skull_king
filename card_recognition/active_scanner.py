@@ -84,7 +84,6 @@ while cam_quit == 0:
             x = np.asarray(gray, dtype='float32')
             image_data = np.expand_dims(x, 0)
             class_names = ['black', 'boat', 'green', 'mermade', 'pirate', 'purple', 'skull_king', 'yellow']
-            print(interpreter.get_signature_list())
             classify_lite = interpreter.get_signature_runner('serving_default')
             predictions_lite_suit = classify_lite(sequential_input=image_data)['outputs']
             _class = class_names[np.argmax(predictions_lite_suit)]
